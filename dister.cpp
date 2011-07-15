@@ -10,7 +10,7 @@
 #include "worker.h"
 
 // 工作队列
-//extern worker_queue_t workers;
+worker_queue_t workers;
 
 /**
 * 抓包分发函数入口
