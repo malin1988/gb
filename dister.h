@@ -1,10 +1,15 @@
 #ifdef __DISTER__H__
 #define __DISTER_H__
 
-#include "global.h"
 /**
-* 分发进程函数
+* 分发进程入口
 */
-void dispatcher(raw_packet_t *rpkt);
+void dister();
+
+/**
+* 初始化工作队列
+*/
+
+static void init_worker();
 
 #endif

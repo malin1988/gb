@@ -4,4 +4,5 @@
 /**
 * 工作进程函数
 */
+void do_work(int fd);
 #endif

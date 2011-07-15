@@ -6,6 +6,8 @@
 
 void tc_start();
 
+void dispatcher(raw_packet_t *rpkt);
+
 static void ProcessPacketsBuffer(TC_PACKETS_BUFFER hPacketBuffer);
 
 static void PrintPacket(PVOID pData, PTC_PACKET_HEADER pHeader);
