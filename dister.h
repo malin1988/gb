@@ -1,5 +1,5 @@
-#ifdef __DISTER__H__
-#define __DISTER_H__
+#ifndef __DISTER__H__
+#define __DISTER__H__
 
 /**
 * 分发进程入口

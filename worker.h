@@ -1,5 +1,5 @@
 #ifndef __WORKER_H__
-#define __WORKER__
+#define __WORKER_H__
 
 /**
 * 工作进程函数

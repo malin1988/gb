@@ -1,10 +1,9 @@
-/**
-* 程序入口
-*/
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
 #include "tc.h"
+#include "dister.h"
+#include "utils.h"
 
 int main()
 {
@@ -16,7 +15,7 @@ int main()
 		dister();
 	} else if (pid > 0) {
 		/* 主监控进程 */
-		monitor();
+		//monitor();
 	} else {
 		log_msg(LOG_LEVEL_ERR, strerror(errno));
 	}

@@ -26,7 +26,7 @@ typedef struct worker worker_t;
 * 工作队列
 */
 
-#define WORKER_CNT 4; // 工作进程数
+#define WORKER_CNT 4 // 工作进程数
 struct worker_queue {
 	worker_t worker[WORKER_CNT];
 	int turn;

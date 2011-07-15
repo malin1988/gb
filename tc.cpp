@@ -79,7 +79,7 @@ static void ProcessPacketsBuffer(TC_PACKETS_BUFFER hPacketsBuffer)
 		if (status != TC_SUCCESS) break;
 
 		// 封装成自己的格式
-		rpkt.len = header.len;
+		rpkt.len = header.Length;
 		rpkt.pkt = pData;
 
 		/* FIXME 临时测试用*/
@@ -109,7 +109,7 @@ void dispatcher(raw_packet_t *rpkt)
 	return;
 }
 
-int main_ok()
+int tc_main_ok()
 {
 	tc_start();
 }

@@ -10,7 +10,7 @@
 #include "worker.h"
 
 // 工作队列
-extern worker_queue_t workers;
+//extern worker_queue_t workers;
 
 /**
 * 抓包分发函数入口
@@ -21,7 +21,7 @@ void dister()
 	init_worker();
 
 	// 开始抓包
-	tc_run();
+	tc_start();
 }
 
 void init_worker()
