@@ -4,9 +4,10 @@
 #include "TcApi.h"
 #include "global.h"
 
-void tc_start();
+typedef void (*dispatcher)(raw_packet_t *rpkt);
 
-void dispatcher(raw_packet_t *rpkt);
+void tc_start(dispatcher dispfunc);
+
 
 static void ProcessPacketsBuffer(TC_PACKETS_BUFFER hPacketBuffer);
 

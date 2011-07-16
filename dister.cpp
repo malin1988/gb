@@ -13,18 +13,24 @@
 worker_queue_t workers;
 
 /**
+* 初始化工作队列
+*/
+
+static void init_worker(worker_queue_t * workers);
+
+/**
 * 抓包分发函数入口
 */
 void dister()
 {
 	// 初始化工作队列
-	init_worker();
+	init_worker(&workers);
 
 	// 开始抓包
-	tc_start();
+	tc_start(dispatcher);
 }
 
-void init_worker()
+static void init_worker(worker_queue_t * workers)
 {
 	int i, fd[2];
 	pid_t pid;
@@ -44,9 +50,24 @@ void init_worker()
 			log_msg(LOG_LEVEL_ERR, strerror(errno));
 		} else {
 			close(fd[1]);
-			workers.worker[i].fd = fd[0];
-			workers.worker[i].pid = pid;
+			workers->worker[i].fd = fd[0];
+			workers->worker[i].pid = pid;
 		}
 	}
+}
+
+void dispatcher(raw_packet_t *rpkt)
+{
+	//需保证工作队列是有效的
+	int turn = (workers.turn == WORKER_CNT) ? 0 : workers.turn;
+	int fd = workers.worker[turn].fd;
+	int len = sizeof(rpkt->len) + rpkt->len;
+
+	// FIXME 不能保证写成功
+	write(fd, rpkt, len);
+	// 更新下一个工作进程
+	workers.turn++;
+
+	return;
 }
 

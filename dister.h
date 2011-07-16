@@ -6,10 +6,5 @@
 */
 void dister();
 
-/**
-* 初始化工作队列
-*/
-
-static void init_worker();
-
+void dispatcher(raw_packet_t *rpkt);
 #endif

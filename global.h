@@ -30,6 +30,7 @@ typedef struct worker worker_t;
 struct worker_queue {
 	worker_t worker[WORKER_CNT];
 	int turn;
+	int size;
 };
 
 typedef struct worker_queue worker_queue_t;

@@ -3,10 +3,7 @@
 #include "tc.h"
 #include "utils.h"
 
-/* dister.h中的调度函数 */
-extern void dispatcher(raw_packet_t *pkt);
-
-void tc_start()
+void tc_start(dispatcher dispfunc)
 {
 	TC_INSTANCE hInstance;
 	TC_PACKETS_BUFFER hPacketsBuffer;
@@ -85,7 +82,7 @@ static void ProcessPacketsBuffer(TC_PACKETS_BUFFER hPacketsBuffer)
 		/* FIXME 临时测试用*/
 		// PrintPacket(pData, &header);
 		/* 调用分发器 */
-		dispatcher(&rpkt);
+		dispfunc(&rpkt);
     }while(TRUE);
 }
 
@@ -94,20 +91,6 @@ static void PrintPacket(PVOID pData, PTC_PACKET_HEADER pHeader)
 	printf("Received packet at %I64u, size = %u\n", pHeader->Timestamp, pHeader->Length);
 }
 
-void dispatcher(raw_packet_t *rpkt)
-{
-	//需保证工作队列是有效的
-	int turn = (workers.turn == WORKER_CNT) ? 0 : workers.turn;
-	int fd = workers.worker[turn].fd;
-	int len = sizeof(rpkt->len) + rpkt->len;
-
-	// FIXME 不能保证写成功
-	write(fd, rpkt, len);
-	// 更新下一个工作进程
-	workers.turn++;
-
-	return;
-}
 
 int tc_main_ok()
 {
