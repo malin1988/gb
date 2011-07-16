@@ -23,8 +23,8 @@ static void write_log(const char *path, const char *msg)
 	snprintf(fullpath, 1024, "%s%s", path, filename);
 
 	// debug
-	printf("filename: %s\n", filename);
-	printf("fullpath: %s\n", fullpath);
+	//printf("filename: %s\n", filename);
+	//printf("fullpath: %s\n", fullpath);
 
 	/* 写入日至 */
 	FILE *fp = NULL;

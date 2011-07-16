@@ -8,5 +8,5 @@
 */
 void dister();
 
-void dispatcher(raw_packet_t *rpkt);
+void mydispatcher(raw_packet_t *rpkt);
 #endif

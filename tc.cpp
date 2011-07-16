@@ -24,7 +24,7 @@ void tc_start(dispatcher dispfunc)
 	}
 
 	/* 取第一个可用的端口 */
-	port = portList[0];
+	port = portList[1];
 
 	result = TcInstanceOpenByPort(port, &hInstance);
 	if (result != TC_SUCCESS) {
