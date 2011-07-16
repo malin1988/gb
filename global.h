@@ -34,5 +34,4 @@ struct worker_queue {
 
 typedef struct worker_queue worker_queue_t;
 
-worker_queue_t workers;
 #endif // __GLOBAL
