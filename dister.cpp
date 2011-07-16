@@ -27,7 +27,7 @@ void dister()
 	init_worker(&workers);
 
 	// 开始抓包
-	tc_start(dispatcher);
+	tc_start(mydispatcher);
 }
 
 static void init_worker(worker_queue_t * workers)
@@ -37,7 +37,7 @@ static void init_worker(worker_queue_t * workers)
 
 	for (i = 0; i < WORKER_CNT; i++) {
 		// 初始化sockfd
-		if (socketpair(AF_UNIX, 0, SOCK_STREAM, fd) < 0) {
+		if (socketpair(AF_UNIX, SOCK_STREAM, 0,  fd) < 0) {
 			log_msg(LOG_LEVEL_ERR, strerror(errno));
 		}
 
@@ -56,7 +56,7 @@ static void init_worker(worker_queue_t * workers)
 	}
 }
 
-void dispatcher(raw_packet_t *rpkt)
+void mydispatcher(raw_packet_t *rpkt)
 {
 	//需保证工作队列是有效的
 	int turn = (workers.turn == WORKER_CNT) ? 0 : workers.turn;

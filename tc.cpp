@@ -49,7 +49,7 @@ void tc_start(dispatcher dispfunc)
 		if (hPacketsBuffer == NULL) 
 			continue;
 
-		ProcessPacketsBuffer(hPacketsBuffer);
+		ProcessPacketsBuffer(hPacketsBuffer, dispfunc);
 		TcPacketsBufferDestroy(hPacketsBuffer);
 	}while(TRUE);
 
@@ -61,7 +61,7 @@ void tc_start(dispatcher dispfunc)
 	TcInstanceClose(hInstance);
 }
 
-static void ProcessPacketsBuffer(TC_PACKETS_BUFFER hPacketsBuffer)
+static void ProcessPacketsBuffer(TC_PACKETS_BUFFER hPacketsBuffer, dispatcher dispfunc)
 {
     PVOID pData;
     TC_PACKET_HEADER header;
@@ -91,8 +91,3 @@ static void PrintPacket(PVOID pData, PTC_PACKET_HEADER pHeader)
 	printf("Received packet at %I64u, size = %u\n", pHeader->Timestamp, pHeader->Length);
 }
 
-
-int tc_main_ok()
-{
-	tc_start();
-}
