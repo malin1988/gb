@@ -70,4 +70,10 @@ struct llc {
 /// 获取llc地址的SAPI
 #define LLGMM 0x01
 uint8_t get_llc_sapi(void *llcbuf);
+
+#define ACTIVE_PDP_CONTEXT_REQ 0x41
+struct gmm {
+    uint8_t pd;
+    uint8_t type;
+};
 #endif

@@ -49,8 +49,8 @@ int main(int argc, char **argv)
         /// 找到NS_UNIDATA数据包
         if (get_ns_type(u8p, leftlen) != NS_UNIDATA) {
             // 不是NS_UNIDATA数据包直接跳过
-            // continue;
             printf("Not NS-UNIDATA: %x\n", get_ns_type(u8p, leftlen));
+            continue;
         } 
 
         /// 跳过NS
@@ -65,7 +65,7 @@ int main(int argc, char **argv)
 
         /// 不需要跳过SDU，直接处理ul/dl unidata
         if (sdu_type == DL_UNIDATA) {
-            
+            /// TODO deal with dl_unidata
         } else {
             struct ul_unidata * ulp = (struct ul_unidata *)u8p;
             printf("ul type: %x\n", ulp->type);
@@ -88,6 +88,18 @@ int main(int argc, char **argv)
         if (get_llc_sapi(u8p) != LLGMM) {
             printf("Not LLGMM\n");
             continue;
+        }
+        /// 跳过LLC SAPI 和 Unconfirmed UI
+        u8p += 3;
+
+        struct gmm *gmmp = (struct gmm*)u8p;
+        switch (gmmp->type) {
+            case ACTIVE_PDP_CONTEXT_REQ:
+                printf("It's PDP context request\n");
+                break;
+            /// TODO Add more type And type handler
+            default:
+                break;
         }
         
         if (cnt == 3) break;
