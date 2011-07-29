@@ -48,17 +48,24 @@ struct sdu {
 };
 uint8_t get_sdu_type(void *sdubuf, size_t len);
 
+#define LLC_PDU 0x0e // LLC PDU开始标志
 /// DL/UL UNIDATA
-struct dl_unidata {
-    uint8_t type;
-};
-
+/// UL_UNIDATA固定头
+/// 可变头动态处理
 struct ul_unidata {
     uint8_t type;
     uint8_t tlli[4];
     uint8_t qos[3];
     uint8_t cid[10];
-    uint8_t alo[2]; // alignment octets
+};
+
+/// DL_UNIDATA固定头
+/// 可变头动态处理
+struct dl_unidata {
+    uint8_t type;
+    uint8_t ctlli[4]; // current tlli
+    uint8_t qos[3];
+    uint8_t lifetime[4];
 };
 
 struct llc {
@@ -71,7 +78,26 @@ struct llc {
 #define LLGMM 0x01
 uint8_t get_llc_sapi(void *llcbuf);
 
-#define ACTIVE_PDP_CONTEXT_REQ 0x41
+#define ATTACH_REQUEST         0x01
+#define ATTACH_ACCEPT          0x02
+#define ATTACH_COMPLETE        0x03
+#define ATTACH_REJECT          0x04
+
+#define DETACH_REQUEST         0x05
+#define DETACH_ACCEPT          0x06
+
+#define ROUTE_UPDATE_REQUEST   0x08
+#define ROUTE_UPDATE_ACCEPT    0x09
+#define ROUTE_UPDATE_COMPLETE  0x0a
+#define ROUTE_UPDATE_REJECT    0x0b
+
+#define ACTIVE_PDP_REQUEST     0x41
+#define ACTIVE_PDP_ACCEPT      0x42
+#define ACTIVE_PDP_REJECT      0x43
+
+#define DEACTIVE_PDP_REQUEST   0x46
+#define DEACTIVE_PDP_ACCEPT    0x47
+
 struct gmm {
     uint8_t pd;
     uint8_t type;

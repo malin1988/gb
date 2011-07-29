@@ -45,10 +45,12 @@ size_t read_pkt_hdr(FILE *fp, void *buf)
 {
 	size_t ret;
 	ret = fread(buf, sizeof(packet_hdr_t), 1, fp);
-	if (ret != 1) {
+	if (ret < 0) {
 		fprintf(stderr, "len error\n");
 		exit(-1);
-	}
+	} else if (ret == 0) {
+        return 0;
+    }
 
     packet_hdr_t *p = (packet_hdr_t *)buf;
     return p->orig_len;
@@ -99,5 +101,5 @@ uint8_t get_sdu_type(void *sdubuf, size_t len)
 /// 处理LLC PDU
 uint8_t get_llc_sapi(void *llcbuf)
 {
-    return *(uint8_t*)llcbuf;
+    return *(uint8_t*)llcbuf & 0x0f;
 }
