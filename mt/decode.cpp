@@ -4,6 +4,7 @@
 #include <net/ethernet.h>
 #include <netinet/udp.h>
 #include <netinet/ip.h>
+#include "utils.h"
 #include "pkt.h"
 
 int decode(void *buf, size_t len)
@@ -12,7 +13,7 @@ int decode(void *buf, size_t len)
     uint8_t *u8p = NULL;
 
     //Read Packet
-    leftlen = bodylen = len;
+    bodylen = len;
     cnt++;
 
     /// 不是IP的话直接跳过
@@ -23,7 +24,9 @@ int decode(void *buf, size_t len)
 
     /// 跳过Ethernet
     u8p = (uint8_t*)buf + sizeof(struct ether_header);
-    leftlen = len - sizeof(struct ether_header);
+    leftlen += sizeof(struct ether_header);
+	if (leftlen > bodylen) return -1;
+
     if (get_ip_protocol(u8p) != IP_PROT_UDP) {
         // 不是UDP直接跳过
         //printf("It's not UDP\n");
@@ -32,7 +35,9 @@ int decode(void *buf, size_t len)
 
     /// 跳过IP和UDP
     u8p = u8p + sizeof(struct udphdr) + sizeof(struct iphdr);
-    leftlen = leftlen - sizeof(struct udphdr) - sizeof(struct iphdr);
+    leftlen += sizeof(struct udphdr) + sizeof(struct iphdr);
+	if (leftlen > bodylen) return -1;
+
     /// 找到NS_UNIDATA数据包
     if (get_ns_type(u8p, leftlen) != NS_UNIDATA) {
         // 不是NS_UNIDATA数据包直接跳过
@@ -42,7 +47,9 @@ int decode(void *buf, size_t len)
 
     /// 跳过NS
     u8p = u8p + sizeof(struct ns);
-    leftlen = leftlen - sizeof(struct ns);
+    leftlen += sizeof(struct ns);
+	if (leftlen > bodylen) return -1;
+
     uint8_t sdu_type = get_sdu_type(u8p, leftlen);
     if (sdu_type != DL_UNIDATA && sdu_type != UL_UNIDATA) {
         // 不是DL/UL格式，直接跳过
@@ -63,7 +70,8 @@ int decode(void *buf, size_t len)
 
         // 跳过dl_unidata固定头
         u8p += sizeof(struct dl_unidata);
-        leftlen -= sizeof(struct dl_unidata);
+        leftlen += sizeof(struct dl_unidata);
+		if (leftlen > bodylen) return -1;
 
         // 循环处理可变头
         uint8_t tmptype = 0;
@@ -73,7 +81,8 @@ int decode(void *buf, size_t len)
             tmplen = *u8p & 0x0f;
             // 跳过tmplen长度
             u8p = u8p + tmplen + 1;
-            leftlen = leftlen - tmplen - 1;
+            leftlen += tmplen + 1;
+			if (leftlen > bodylen) return -1;
         }
     } else {
         struct ul_unidata * ulp = (struct ul_unidata *)u8p;
@@ -82,7 +91,8 @@ int decode(void *buf, size_t len)
 
         /// 跳过固定UL_UNIDATA
         u8p = u8p + sizeof(struct ul_unidata);
-        leftlen = leftlen - sizeof(struct ul_unidata);
+        leftlen += sizeof(struct ul_unidata);
+		if (leftlen > bodylen) return -1;
 
         uint8_t tmptype = 0;
         uint8_t tmplen = 0;
@@ -91,7 +101,8 @@ int decode(void *buf, size_t len)
             tmplen = *u8p & 0x0f;
             // 跳过tmplen长度
             u8p = u8p + tmplen + 1;
-            leftlen = leftlen - tmplen - 1;
+            leftlen = leftlen + tmplen + 1;
+			if (leftlen > bodylen) return -1;
         }
     }
 
@@ -103,27 +114,30 @@ int decode(void *buf, size_t len)
 
     /// 跳过LLC头
     u8p = u8p + sizeof(struct llc);
-    leftlen = leftlen - sizeof(struct llc);
+    leftlen = leftlen + sizeof(struct llc);
+	if (leftlen > bodylen) return -1;
+
     if (get_llc_sapi(u8p) != LLGMM) {
         //printf("Not LLGMM\n");
         return -1;
     }
     /// 跳过LLC SAPI 和 Unconfirmed UI
     u8p += 3;
-    leftlen -= 3;
+    leftlen += 3;
+	if (leftlen > bodylen) return -1;
 
     struct gmm *gmmp = (struct gmm*)u8p;
-    printf("-------[%d] len:%u\n", cnt, bodylen);
+    log_msg(LOG_LEVEL_INFO, "-------[%d] len:%u", cnt, bodylen);
     switch (gmmp->type) {
         case DETACH_ACCEPT:
-            printf("It's DETACH ACCEPT\n");
+            log_msg(LOG_LEVEL_INFO, "It's DETACH ACCEPT");
             break;
         case ACTIVE_PDP_REQUEST:
-            printf("It's PDP context request\n");
+            log_msg(LOG_LEVEL_INFO, "It's PDP context request");
             break;
             /// TODO Add more type And type handler
         default:
-            printf("type is: 0x%x\n", gmmp->type);
+            log_msg(LOG_LEVEL_INFO, "type is: 0x%x", gmmp->type);
             break;
     }
 

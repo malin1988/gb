@@ -66,7 +66,6 @@ static void ProcessPacketsBuffer(TC_PACKETS_BUFFER hPacketsBuffer, dispatcher di
     PVOID pData;
     TC_PACKET_HEADER header;
     TC_STATUS status;
-	raw_packet_t rpkt;
 
     do {
 		status = TcPacketsBufferQueryNextPacket(hPacketsBuffer,
@@ -74,20 +73,7 @@ static void ProcessPacketsBuffer(TC_PACKETS_BUFFER hPacketsBuffer, dispatcher di
 				&pData);
 
 		if (status != TC_SUCCESS) break;
-
-		// 封装成自己的格式
-		rpkt.len = header.Length;
-		rpkt.pkt = pData;
-
-		/* FIXME 临时测试用*/
-		// PrintPacket(pData, &header);
 		/* 调用分发器 */
 		dispfunc(pData, header.Length);
     }while(TRUE);
 }
-
-static void PrintPacket(PVOID pData, PTC_PACKET_HEADER pHeader)
-{
-	printf("Received packet at %I64u, size = %u\n", pHeader->Timestamp, pHeader->Length);
-}
-

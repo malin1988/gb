@@ -2,9 +2,8 @@
 #define __TC_H__
 
 #include "TcApi.h"
-#include "global.h"
 
-typedef void (*dispatcher)(void *buf, size_t len);
+typedef int (*dispatcher)(void *buf, size_t len);
 
 void tc_start(dispatcher dispfunc);
 
