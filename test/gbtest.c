@@ -86,6 +86,7 @@ int main(int argc, char **argv)
                 tmplen = *u8p & 0x0f;
                 // 跳过tmplen长度
                 u8p = u8p + tmplen + 1;
+                leftlen = leftlen - tmplen - 1;
             }
         } else {
             struct ul_unidata * ulp = (struct ul_unidata *)u8p;
@@ -103,6 +104,7 @@ int main(int argc, char **argv)
                 tmplen = *u8p & 0x0f;
                 // 跳过tmplen长度
                 u8p = u8p + tmplen + 1;
+                leftlen = leftlen - tmplen - 1;
             }
         }
 
@@ -114,12 +116,14 @@ int main(int argc, char **argv)
 
         /// 跳过LLC头
         u8p = u8p + sizeof(struct llc);
+        leftlen = leftlen - sizeof(struct llc);
         if (get_llc_sapi(u8p) != LLGMM) {
             //printf("Not LLGMM\n");
             continue;
         }
         /// 跳过LLC SAPI 和 Unconfirmed UI
         u8p += 3;
+        leftlen -= 3;
 
         struct gmm *gmmp = (struct gmm*)u8p;
         printf("-------[%d] len:%u\n", cnt, bodylen);
@@ -135,8 +139,6 @@ int main(int argc, char **argv)
                 printf("type is: 0x%x\n", gmmp->type);
                 break;
         }
-        
-
     }
 
 	return 0;
