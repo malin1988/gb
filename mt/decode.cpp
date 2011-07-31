@@ -13,7 +13,7 @@
 
 int decode(void *buf, size_t len, int fd)
 {
-    size_t ret = 0, leftlen = 0, cnt = 0, bodylen = 0;
+    size_t leftlen = 0, cnt = 0, bodylen = 0;
     uint8_t *u8p = NULL;
 
     //Read Packet
@@ -63,7 +63,7 @@ int decode(void *buf, size_t len, int fd)
 
     /// 不需要跳过SDU，直接处理ul/dl unidata
     if (sdu_type == DL_UNIDATA) {
-        struct dl_unidata *dlp = (struct dl_unidata *)u8p;
+        //struct dl_unidata *dlp = (struct dl_unidata *)u8p;
 
         // 跳过dl_unidata固定头
         u8p += sizeof(struct dl_unidata);
@@ -82,7 +82,7 @@ int decode(void *buf, size_t len, int fd)
 			if (leftlen > bodylen) return -1;
         }
     } else {
-        struct ul_unidata * ulp = (struct ul_unidata *)u8p;
+        //struct ul_unidata * ulp = (struct ul_unidata *)u8p;
 
         /// 跳过固定UL_UNIDATA
         u8p = u8p + sizeof(struct ul_unidata);
@@ -102,7 +102,7 @@ int decode(void *buf, size_t len, int fd)
     }
 
     /// 读取LLC头
-    struct llc *pllc = (struct llc*)u8p;
+    //struct llc *pllc = (struct llc*)u8p;
 
     /// 跳过LLC头
     u8p = u8p + sizeof(struct llc);
@@ -150,7 +150,7 @@ size_t print_packet_hdr(uint8_t *pbuf)
 
 int init_static_worker(struct static_worker *sworker)
 {
-	int fd[2], ret = 0;
+	int fd[2];
 	pid_t pid;
 
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0,  fd) < 0) {
@@ -169,18 +169,29 @@ int init_static_worker(struct static_worker *sworker)
 		sworker->fd = fd[0];
 		sworker->pid = (int)pid;
 	}
-
+	return 0;
 }
+
+/// 使用hashmap提高效率
+/// 编译的时候使用-std=c++0x参数
+#include <unordered_map>
+#include <string>
+
+using namespace std;
 
 int do_work(int fd)
 {
 	char buf[65536];
 	int ret = 0;
+	// 记录用户流量信息的hashmap
+	unordered_map<string , uint64_t> stat_map;
+
 	log_msg(LOG_LEVEL_INFO, "static worker startup");
 
 	while (1) {
 		if ((ret = read(fd, buf, sizeof(buf))) > 0) {
 			log_msg(LOG_LEVEL_INFO, "read msg len: %d", ret);
+			/// TODO 提取出IP PORT TLLI，拼成KEY
 		} 
 	}
 
