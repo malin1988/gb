@@ -4,10 +4,14 @@
 #include <net/ethernet.h>
 #include <netinet/udp.h>
 #include <netinet/ip.h>
+#include <unistd.h>
+#include <errno.h>
+#include <string.h>
 #include "utils.h"
 #include "pkt.h"
+#include "decode.h"
 
-int decode(void *buf, size_t len)
+int decode(void *buf, size_t len, int fd)
 {
     size_t ret = 0, leftlen = 0, cnt = 0, bodylen = 0;
     uint8_t *u8p = NULL;
@@ -60,13 +64,6 @@ int decode(void *buf, size_t len)
     /// 不需要跳过SDU，直接处理ul/dl unidata
     if (sdu_type == DL_UNIDATA) {
         struct dl_unidata *dlp = (struct dl_unidata *)u8p;
-        //printf("dl type: %x\n", dlp->type);
-        //printf("dl tlli: %x %x %x %x\n", dlp->ctlli[0], dlp->ctlli[1], dlp->ctlli[2], dlp->ctlli[3]);
-        // printf("dl liftime[0]: %x\n", dlp->lifetime[0]);
-        //printf("dl mrac[0]: %x\n", dlp->mrac[0]);
-        //printf("dl drx[0]: %x\n", dlp->drx[0]);
-        //printf("dl ismi[0]: %x\n", dlp->imsi[0]);
-        //printf("sizeof dl: %u\n", sizeof(struct dl_unidata));
 
         // 跳过dl_unidata固定头
         u8p += sizeof(struct dl_unidata);
@@ -86,8 +83,6 @@ int decode(void *buf, size_t len)
         }
     } else {
         struct ul_unidata * ulp = (struct ul_unidata *)u8p;
-        //printf("ul type: %x\n", ulp->type);
-        //printf("ul tlli: %x %x %x %x\n", ulp->tlli[0], ulp->tlli[1], ulp->tlli[2], ulp->tlli[3]);
 
         /// 跳过固定UL_UNIDATA
         u8p = u8p + sizeof(struct ul_unidata);
@@ -108,9 +103,6 @@ int decode(void *buf, size_t len)
 
     /// 读取LLC头
     struct llc *pllc = (struct llc*)u8p;
-    //printf("size of llc: %u\n", sizeof(struct llc));
-    //printf("llc id: %x\n", pllc->id);
-    //printf("llc len: %d\n", pllc->len);
 
     /// 跳过LLC头
     u8p = u8p + sizeof(struct llc);
@@ -138,6 +130,7 @@ int decode(void *buf, size_t len)
             /// TODO Add more type And type handler
         default:
             log_msg(LOG_LEVEL_INFO, "type is: 0x%x", gmmp->type);
+			write(fd, buf, bodylen);
             break;
     }
 
@@ -153,4 +146,43 @@ size_t print_packet_hdr(uint8_t *pbuf)
 	printf("orig_len: %u\n", p->orig_len);
 
 	return p->orig_len;
+}
+
+int init_static_worker(struct static_worker *sworker)
+{
+	int fd[2], ret = 0;
+	pid_t pid;
+
+	if (socketpair(AF_UNIX, SOCK_STREAM, 0,  fd) < 0) {
+		log_msg(LOG_LEVEL_ERR, strerror(errno));
+	}
+	log_msg(LOG_LEVEL_INFO, "init_worker: worker init, fd[0]=%d, fd[1]=%d.", fd[0], fd[1]);
+
+	pid = fork();
+	if (pid == 0) {
+		// 开启工作进程
+		do_work(fd[1]);
+		exit(0);
+	} else if (pid < 0) {
+		log_msg(LOG_LEVEL_ERR, strerror(errno));
+	} else {
+		sworker->fd = fd[0];
+		sworker->pid = (int)pid;
+	}
+
+}
+
+int do_work(int fd)
+{
+	char buf[65536];
+	int ret = 0;
+	log_msg(LOG_LEVEL_INFO, "static worker startup");
+
+	while (1) {
+		if ((ret = read(fd, buf, sizeof(buf))) > 0) {
+			log_msg(LOG_LEVEL_INFO, "read msg len: %d", ret);
+		} 
+	}
+
+	return 0;
 }

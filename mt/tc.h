@@ -3,13 +3,11 @@
 
 #include "TcApi.h"
 
-typedef int (*dispatcher)(void *buf, size_t len);
+typedef int (*dispatcher)(void *buf, size_t len, int fd);
 
-void tc_start(dispatcher dispfunc);
+void tc_start(dispatcher dispfunc, int fd);
 
 
-static void ProcessPacketsBuffer(TC_PACKETS_BUFFER hPacketBuffer, dispatcher dispfunc);
-
-static void PrintPacket(PVOID pData, PTC_PACKET_HEADER pHeader);
+static void ProcessPacketsBuffer(TC_PACKETS_BUFFER hPacketBuffer, dispatcher dispfunc, int fd);
 
 #endif

@@ -3,7 +3,7 @@
 #include "tc.h"
 #include "utils.h"
 
-void tc_start(dispatcher dispfunc)
+void tc_start(dispatcher dispfunc, int fd)
 {
 	TC_INSTANCE hInstance;
 	TC_PACKETS_BUFFER hPacketsBuffer;
@@ -49,19 +49,19 @@ void tc_start(dispatcher dispfunc)
 		if (hPacketsBuffer == NULL) 
 			continue;
 
-		ProcessPacketsBuffer(hPacketsBuffer, dispfunc);
+		ProcessPacketsBuffer(hPacketsBuffer, dispfunc, fd);
 		TcPacketsBufferDestroy(hPacketsBuffer);
 	}while(TRUE);
 
 	if (result != TC_SUCCESS)
 	{
-		log_msg(LOG_LEVEL_ERR, "Error in the reception process: %s (%08x)\n", TcStatusGetString(result), result);
+		log_msg(LOG_LEVEL_ERR, "Error in the reception process: %s (%08x)", TcStatusGetString(result), result);
 	}
 
 	TcInstanceClose(hInstance);
 }
 
-static void ProcessPacketsBuffer(TC_PACKETS_BUFFER hPacketsBuffer, dispatcher dispfunc)
+static void ProcessPacketsBuffer(TC_PACKETS_BUFFER hPacketsBuffer, dispatcher dispfunc, int fd)
 {
     PVOID pData;
     TC_PACKET_HEADER header;
@@ -74,6 +74,6 @@ static void ProcessPacketsBuffer(TC_PACKETS_BUFFER hPacketsBuffer, dispatcher di
 
 		if (status != TC_SUCCESS) break;
 		/* 调用分发器 */
-		dispfunc(pData, header.Length);
+		dispfunc(pData, header.Length, fd);
     }while(TRUE);
 }
