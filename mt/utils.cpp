@@ -66,4 +66,5 @@ int main_ok()
 {
 	log_msg(LOG_LEVEL_INFO, "ERR ERR...");
 	log_msg(LOG_LEVEL_INFO, "ERR ERR...");
+	return 0;
 }

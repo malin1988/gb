@@ -44,8 +44,14 @@ int decode(void *buf, size_t len, int fd)
 
     /// 找到NS_UNIDATA数据包
     if (get_ns_type(u8p, leftlen) != NS_UNIDATA) {
-        // 不是NS_UNIDATA数据包直接跳过
-        //printf("Not NS-UNIDATA: %x\n", get_ns_type(u8p, leftlen));
+        // 不是NS_UNIDATA数据包发送给流量统计模块
+		struct stat_pkt stat_data;
+		size_t stat_data_len = (bodylen - leftlen > sizeof(stat_data.pkt) ? sizeof(stat_data.pkt) : bodylen - leftlen);
+		stat_data.cmd = STAT_CMD_DATA;
+		stat_data.len = stat_data_len;
+		memcpy(stat_data.pkt, u8p, stat_data_len);
+
+		write(fd, &stat_data, sizeof(stat_data));
         return -1;
     } 
 
@@ -130,6 +136,12 @@ int decode(void *buf, size_t len, int fd)
             /// TODO Add more type And type handler
         default:
             log_msg(LOG_LEVEL_INFO, "type is: 0x%x", gmmp->type);
+
+			struct stat_pkt stat_cntl;
+			size_t stat_cntl_len = (bodylen - leftlen > sizeof(stat_cntl.pkt) ? sizeof(stat_cntl.pkt) : bodylen - leftlen);
+			stat_cntl.cmd = STAT_CMD_CNTL;
+			stat_cntl.len = stat_cntl_len;
+			memcpy(stat_cntl.pkt, u8p, stat_cntl_len);
 			write(fd, buf, bodylen);
             break;
     }
@@ -181,7 +193,7 @@ using namespace std;
 
 int do_work(int fd)
 {
-	char buf[65536];
+	//char buf[65536];
 	int ret = 0;
 	// 记录用户流量信息的hashmap
 	unordered_map<string , uint64_t> stat_map;
@@ -189,8 +201,9 @@ int do_work(int fd)
 	log_msg(LOG_LEVEL_INFO, "static worker startup");
 
 	while (1) {
-		if ((ret = read(fd, buf, sizeof(buf))) > 0) {
-			log_msg(LOG_LEVEL_INFO, "read msg len: %d", ret);
+		struct stat_pkt statpkt;
+		if ((ret = read(fd, &statpkt, sizeof(statpkt))) > 0) {
+			log_msg(LOG_LEVEL_INFO, "read msg len: %d, type: %d", ret, statpkt.cmd);
 			/// TODO 提取出IP PORT TLLI，拼成KEY
 		} 
 	}
